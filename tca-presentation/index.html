@@ -4,6 +4,7 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no"/>
     <link rel="stylesheet" href="/node_modules/angular-material/angular-material.css">
     <link rel="stylesheet" href="css/tcalendar.css">
+    <link rel="stylesheet" href="bower_components/fullcalendar/dist/fullcalendar.css"/>
 </head>
 <body ng-app="TCalendar">
 
@@ -25,7 +26,7 @@
     </md-toolbar>
     <md-content>
         <div layout="row">
-            <section layout="column">
+            <section layout="row">
                 <md-sidenav class="md-sidenav-left md-whiteframe-z1" md-component-id="left" md-is-locked-open="true">
 
                     <!--Personal data-->
@@ -39,45 +40,46 @@
                     <md-button ng-click="clickEmployeesButton()">Employees</md-button>
 
                 </md-sidenav>
-            </section>
-            <md-sidenav class="md-sidenav-left md-whiteframe-z1" md-component-id="left"
-                        md-is-locked-open="isOpenEmployees">
-                <!--Toolbar search-->
-                <md-input-container md-no-float>
-                    <md-icon
-                            md-svg-src="/node_modules/material-design-icons/action/svg/production/ic_search_24px.svg"
-                            class="search" alt="search"></md-icon>
-                    <input type="text" placeholder="Search" ng-model="searchEmployees">
-                </md-input-container>
 
-                <!--Employees-->
-                <md-content class="autoScroll">
-                    <md-content layout="column" layout-padding
-                                style="height: {{heightScreen}}vh;">
-                        <md-list>
-                            <md-list-item class="md-2-line" ng-repeat="employe in employes | filter:searchEmployees"
-                                          ng-click="clickItem()">
-                                <img ng-src="{{employe.img}}" class="md-avatar"/>
+                <md-sidenav class="md-sidenav-left md-whiteframe-z1" md-component-id="left"
+                            md-is-locked-open="isOpenEmployees">
+                    <!--Toolbar search-->
+                    <md-input-container md-no-float>
+                        <md-icon
+                                md-svg-src="/node_modules/material-design-icons/action/svg/production/ic_search_24px.svg"
+                                class="search" alt="search"></md-icon>
+                        <input type="text" placeholder="Search" ng-model="searchEmployees">
+                    </md-input-container>
 
-                                <div class="md-list-item-text">
-                                    <p>{{employe.firstName}} {{employe.lastName}}</p>
+                    <!--Employees-->
+                    <md-content class="autoScroll">
+                        <md-content layout="column" layout-padding
+                                    style="height: {{heightScreen}}vh;">
+                            <md-list>
+                                <md-list-item class="md-2-line" ng-repeat="employe in employes | filter:searchEmployees"
+                                              ng-click="clickItem()">
+                                    <img ng-src="{{employe.img}}" class="md-avatar"/>
 
-                                    <p>{{employe.project}}</p>
-                                </div>
-                            </md-list-item>
-                        </md-list>
+                                    <div class="md-list-item-text">
+                                        <p>{{employe.firstName}} {{employe.lastName}}</p>
 
+                                        <p>{{employe.project}}</p>
+                                    </div>
+                                </md-list-item>
+                            </md-list>
+
+                        </md-content>
+                        <md-button class="md-fab md-mini md-fab-bottom-right">
+                            +
+                        </md-button>
                     </md-content>
-                    <md-button class="md-fab md-mini md-fab-bottom-right">
-                        +
-                    </md-button>
-                </md-content>
-            </md-sidenav>
-            <!--Content-->
-            <section>
+                </md-sidenav>
 
+                <div ui-calendar="uiConfig.calendar" ng-model="eventSources" ng-show="isOpenItemOfEmpl"></div>
             </section>
+
         </div>
+
     </md-content>
 
 </div>
@@ -88,11 +90,20 @@
 <script src="/node_modules/angular-material/angular-material.js"></script>
 <script src="/node_modules/angular-material-icons/angular-material-icons.js"></script>
 
+
+<!-- jquery, moment, and angular have to get included before fullcalendar -->
+<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
+<script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
+<script type="text/javascript" src="bower_components/angular-ui-calendar/src/calendar.js"></script>
+<script type="text/javascript" src="bower_components/fullcalendar/dist/fullcalendar.min.js"></script>
+<script type="text/javascript" src="bower_components/fullcalendar/dist/gcal.js"></script>
+
 <script>
 
     // Include app dependency on ngMaterial
 
-    angular.module('TCalendar', ['ngMaterial', 'ngMdIcons'])
+    angular.module('TCalendar', ['ngMaterial', 'ngMdIcons', 'ui.calendar'])
             .controller("MainController", function ($scope, $window) {
                 $scope.firstName = 'Ivan';
                 $scope.lastName = 'Ivanov'
@@ -100,17 +111,52 @@
                 $scope.heightScreen = 85;
 
                 $scope.isOpenEmployees = false;
+                $scope.isOpenItemOfEmpl = false;
+
+                $scope.eventSources = [
+                    {
+                        events: [
+                            {
+                                title: 'Event1',
+                                start: '2015-06-04',
+                                end: '2015-06-16'
+                            }
+                        ],
+                        color: 'blue',     // an option!
+                        textColor: 'white' // an option!
+                    }];
+
+                $scope.alertEventOnClick = function (start, end) {
+                    alert("HI");
+                };
+
+                $scope.uiConfig = {
+                    calendar: {
+                        height: "100%",
+                        editable: false,
+                        header: {
+                            left: '',
+                            center: 'title',
+                            right: 'prev,next'
+                        },
+                        weekends: false,
+                        selectable: true,
+                        select: $scope.alertEventOnClick
+                    }
+                };
 
                 $scope.clickEmployeesButton = function () {
                     $scope.isOpenEmployees = true;
-                }
+                    $scope.isOpenItemOfEmpl = false;
+                };
 
                 $scope.clickDashboardButton = function () {
                     $scope.isOpenEmployees = false;
-                }
+                    $scope.isOpenItemOfEmpl = false;
+                };
 
-                $scope.clickItem = function () {
-
+                $scope.clickItem = function (empl) {
+                    $scope.isOpenItemOfEmpl = true;
                 };
                 $scope.employes = [
                     {
