@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="/node_modules/angular-material/angular-material.css">
     <link rel="stylesheet" href="css/tcalendar.css">
     <link rel="stylesheet" href="bower_components/fullcalendar/dist/fullcalendar.css"/>
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
 </head>
 <body ng-app="TCalendar">
 
@@ -84,6 +85,32 @@
 
 </div>
 
+<div ng-controller="ModalDemoCtrl">
+    <script type="text/ng-template" id="myModalContent.html">
+        <div class="modal-header">
+            <h3 class="modal-title">I'm a modal!</h3>
+        </div>
+        <div class="modal-body">
+            <ul>
+                <li ng-repeat="item in items">
+                    <a ng-click="selected.item = item">{{ item }}</a>
+                </li>
+            </ul>
+            Selected: <b>{{ selected.item }}</b>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="ok()">OK</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+        </div>
+    </script>
+
+    <button class="btn btn-default" ng-click="open()">Open me!</button>
+    <button class="btn btn-default" ng-click="open('lg')">Large modal</button>
+    <button class="btn btn-default" ng-click="open('sm')">Small modal</button>
+    <button class="btn btn-default" ng-click="toggleAnimation()">Toggle Animation ({{ animationsEnabled }})</button>
+    <div ng-show="selected">Selection from a modal: {{ selected }}</div>
+</div>
+
 <script src="/node_modules/angular/angular.js"></script>
 <script src="/node_modules/angular-aria/angular-aria.js"></script>
 <script src="/node_modules/angular-animate/angular-animate.js"></script>
@@ -99,11 +126,13 @@
 <script type="text/javascript" src="bower_components/fullcalendar/dist/fullcalendar.min.js"></script>
 <script type="text/javascript" src="bower_components/fullcalendar/dist/gcal.js"></script>
 
+<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+
 <script>
 
     // Include app dependency on ngMaterial
 
-    angular.module('TCalendar', ['ngMaterial', 'ngMdIcons', 'ui.calendar'])
+    angular.module('TCalendar', ['ngMaterial', 'ngMdIcons', 'ui.calendar', 'ui.bootstrap'])
             .controller("MainController", function ($scope, $window) {
                 $scope.firstName = 'Ivan';
                 $scope.lastName = 'Ivanov'
@@ -115,19 +144,27 @@
 
                 $scope.eventSources = [
                     {
-                        events: [
-                            {
-                                title: 'Event1',
-                                start: '2015-06-04',
-                                end: '2015-06-16'
-                            }
-                        ],
+                        events: [],
                         color: 'blue',     // an option!
+                        textColor: 'white' // an option!
+                    }, {
+                        events: [],
+                        color: 'Green',     // an option!
+                        textColor: 'white' // an option!
+                    },
+                    {
+                        events: [],
+                        color: 'red',     // an option!
                         textColor: 'white' // an option!
                     }];
 
                 $scope.alertEventOnClick = function (start, end) {
-                    alert("HI");
+                    console.debug("Adds event");
+                    var event = {
+                        start: start,
+                        end: end
+                    };
+                    $scope.eventSources[0].events.push(event);
                 };
 
                 $scope.uiConfig = {
@@ -257,6 +294,53 @@
                     }
                 ];
 
+            })
+            .controller("ModalDemoCtrl", function ($scope, $modal, $log) {
+
+                $scope.items = ['item1', 'item2', 'item3'];
+
+                $scope.animationsEnabled = true;
+
+                $scope.open = function (size) {
+
+                    var modalInstance = $modal.open({
+                        animation: $scope.animationsEnabled,
+                        templateUrl: 'myModalContent.html',
+                        controller: 'ModalInstanceCtrl',
+                        size: size,
+                        resolve: {
+                            items: function () {
+                                return $scope.items;
+                            }
+                        }
+                    });
+
+                    modalInstance.result.then(function (selectedItem) {
+                        $scope.selected = selectedItem;
+                    }, function () {
+                        $log.info('Modal dismissed at: ' + new Date());
+                    });
+                };
+
+                $scope.toggleAnimation = function () {
+                    $scope.animationsEnabled = !$scope.animationsEnabled;
+                };
+
+            })
+            .controller("ModalInstanceCtrl", function ($scope, $modalInstance, items) {
+
+                $scope.items = items;
+                $scope.selected = {
+                    item: $scope.items[0]
+                };
+
+                $scope.ok = function () {
+                    $modalInstance.close($scope.selected.item);
+                };
+
+                $scope.cancel = function () {
+                    $modalInstance.dismiss('cancel');
+                };
             });
 
 
